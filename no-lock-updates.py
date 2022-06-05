@@ -7,7 +7,7 @@ if __name__ == '__main__':
     print('Connected')
 
     # from hazelcast python docs
-    dist_map = client.get_map('distributed-map')
+    dist_map = client.get_map('distributed-map').blocking()
     print('Fetched map')
 
     key = 1
@@ -16,12 +16,12 @@ if __name__ == '__main__':
         if i % 100 == 0:
             print(f"At: {i}")
 
-        value = dist_map.get(key).result()
+        value = dist_map.get(key)
         time.sleep(0.01)
         value += 1
         dist_map.put(key, value)
 
-    print(f"Finished! Result = {dist_map.get(key).result()}")
+    print(f"Finished! Result = {dist_map.get(key)}")
 
     client.shutdown()
 
