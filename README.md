@@ -1,4 +1,4 @@
-# Lab 2: Working with Hazelcast
+# Lab 3: Microservies with Hazelcast Distributed Map
 
 ### Disclaimer
 
