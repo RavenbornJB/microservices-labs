@@ -1,35 +1,19 @@
-# Lab 3: Microservies with Hazelcast Distributed Map
+# Lab 4: Microservies with MQ (Hazelcast Distributed Queue)
 
 ## Report
 
-### Part 1
+Since the system is getting larger, let us take a look at the initialization process:
 
-The logging service is hosted on 3 different ports, indicated as the argument to `logging_service.py` (i.e. `logging_service.py 8083`):
+![initialization commands](screenshots/initialization-commands.png)
 
-![logging ports](screenshots/logging-ports.png)
+After running the demo, we can see that all 10 messages were recovered. (in red)
 
-### Part 2
+![results](screenshots/results.png)
 
-Launching the demo, we can see how the messages are being randomly distributed among the logging services (highlighted in green):
+In green are logs of both messages services, indicating what messages did they consume through the queue.
 
-![message distribution](screenshots/message-distribution.png)
+You can also see other logs, although that is not required.
 
-Then, of course, all of them can be found via a GET request, seen in red.
+## GET request idea
 
-### Part 3
-
-Killing one of the `logging_service.py` processes removes a node from the cluster, since that node was created and tied with the logging process:
-
-![removing node](screenshots/removing-node.png)
-
-Afterwards, requesting the data again returns all of it, indicating that nothing was lost:
-
-![message integrity](screenshots/message-integrity.png)
-
-### Appendix
-
-A situation is possible where the facade randomly tries to connect to the specific logging node that was removed. In that case, it will remove it from the list of possible connections and retry.
-
-In the screenshot below, I killed two of the logging processes for a greater chance of a connection error (seen in green, only 1 node left). When the facade service tries to connect, it picks one of the killed logging nodes and has to retry (in red).
-
-![retrying connection](screenshots/retrying-connection.png)
+Instead of choosing instances of `messages_service` randomly, I do a GET request on each of them and combine the results, since we would have done that anyway to get all the data. I do this inside `facade_service.py`.
