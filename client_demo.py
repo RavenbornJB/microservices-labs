@@ -1,35 +1,30 @@
 import requests
+import logging
+import time
+
+# setup logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 FACADE_PORT = 8080
-
 FACADE_URL = f"http://localhost:{FACADE_PORT}"
 
 if __name__ == '__main__':
-    r = requests.post(FACADE_URL, data={'message': 'A creative message text.'})
-    print(r.status_code)
+    for i in range(10):
+        r = requests.post(FACADE_URL, data={'message': f'message #{i+1}'})
+        print(f'Posted message=`message #{i+1}`, response={r.status_code}')
+        time.sleep(1)
 
     r = requests.get(FACADE_URL)
-    print(r.text)
+    print(f'Received response: {r.text}')
+    time.sleep(1)
 
-    r = requests.post(FACADE_URL, data={'message': 'And another one!'})
-    print(r.status_code)
-
-    r = requests.get(FACADE_URL)
-    print(r.text)
-
-    r = requests.post(FACADE_URL, data={'message': 'Ok, enough :('})
-    print(r.status_code)
+    _ = input('Please shutdown one of the logging clients. When done, press Enter:')
+    time.sleep(1)
 
     r = requests.get(FACADE_URL)
-    print(r.text)
-
-
-# To remember:
-# import logging
-#
-# logging.basicConfig(
-#     format='%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
-#     level=logging.INFO
-# )
-#
-# logger = logging.getLogger(__name__)
+    print(f'Received response: {r.text}')
+    time.sleep(1)
