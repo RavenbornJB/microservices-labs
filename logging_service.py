@@ -1,9 +1,9 @@
 from flask import Flask, Response, request
 from hazelcast import HazelcastClient
-import sys
 import subprocess
 import time
 import logging
+from parse_ports import parse_port, Services
 
 # setup logging
 logging.basicConfig(
@@ -37,21 +37,6 @@ def handle_messages():
         return f"{dist_map.values()}", 200
 
 
-def get_port():
-    if len(sys.argv) < 2:
-        return 8082
-
-    try:
-        port = int(sys.argv[1])
-    except ValueError:
-        raise ValueError(f'`port` must be an integer (i.e. 8081), provided was {sys.argv[1]}')
-
-    if not (8082 <= port < 8090):
-        raise ValueError(f'`port` must be in the range [8082, 8090), provided was {port}')
-
-    return port
-
-
 if __name__ == '__main__':
-    service_port = get_port()
+    service_port = parse_port(1, Services.LOGGING)
     app.run(port=service_port)
