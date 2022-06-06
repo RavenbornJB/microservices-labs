@@ -1,47 +1,35 @@
 # Lab 3: Microservies with Hazelcast Distributed Map
 
-### Disclaimer
-
-Sorry for the low quality of some larger screenshots, I accidentally saved them in lower resolution and only noticed when writing this report... My apologies.
-
 ## Report
 
-### Task 1
+### Part 1
 
-After filling the map with `dist_map_fill.py`, the data was distributed evenly among the 3 cluster nodes:
+The logging service is hosted on 3 different ports, indicated as the argument to `logging_service.py` (i.e. `logging_service.py 8083`):
 
-![3 nodes](screenshots/cluster-3-nodes.jpg)
+![logging ports](screenshots/logging-ports.png)
 
-When the 3rd node got removed unexpectedly, the other two split the load - and didn't lose any data in the process:
+### Part 2
 
-![2 nodes](screenshots/cluster-2-nodes.jpg)
+Launching the demo, we can see how the messages are being randomly distributed among the logging services (highlighted in green):
 
-Same worked when only leaving 1 node up:
+![message distribution](screenshots/message-distribution.png)
 
-![1 node](screenshots/cluster-1-node.jpg)
+Then, of course, all of them can be found via a GET request, seen in red.
 
-### Task 2
+### Part 3
 
-Without any locks, almost all calls from the 3 clients overlapped, and the total result barely got over a thousand (despite 3 thousand actual +1 operations happening):
+Killing one of the `logging_service.py` processes removes a node from the cluster, since that node was created and tied with the logging process:
 
-![no lock](screenshots/no-lock-results.jpg)
+![removing node](screenshots/removing-node.png)
 
-Pessimistic locking got the job done (the final result is 3000), but took a while to finish:
+Afterwards, requesting the data again returns all of it, indicating that nothing was lost:
 
-![pessimistic lock](screenshots/pessimistic-lock-results.jpg)
+![message integrity](screenshots/message-integrity.png)
 
-Optimistic locking worked just as well, while also performing better:
+### Appendix
 
-![optimistic lock](screenshots/optimistic-lock-results.jpg)
+A situation is possible where the facade randomly tries to connect to the specific logging node that was removed. In that case, it will remove it from the list of possible connections and retry.
 
-### Task 3
+In the screenshot below, I killed two of the logging processes for a greater chance of a connection error (seen in green, only 1 node left). When the facade service tries to connect, it picks one of the killed logging nodes and has to retry (in red).
 
-Setting the queue size limit to 10 (done in `hazelcast.xml`, copied to this repository for readers convenience) resulted in the producer skipping 80% of the item creations, once the queue filled up. In total, only 30 out of 100 items were produced and consumed.
-
-Note: It is possible to implement two kinds of producer logic, which are
-- if queue is full, wait until something gets taken out of it then produce this item
-- if queue is full, skip producing this item
-
-I went with the first approach, although both would explain the bounded queue. The first approach is just faster :D
-
-![bounded queue](screenshots/bounded-queue-results.jpg)
+![retrying connection](screenshots/retrying-connection.png)
