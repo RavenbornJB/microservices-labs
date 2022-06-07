@@ -4,6 +4,11 @@ import subprocess
 import time
 import logging
 from parse_ports import parse_port, Services
+import consul
+
+
+# setup consul
+c = consul.Consul()
 
 # setup logging
 logging.basicConfig(
@@ -19,12 +24,12 @@ app = Flask(__name__)
 ls_output = subprocess.Popen('hazelcast-4.2.5/bin/start.sh', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(15)  # let the node create itself and connect to cluster
 logger.info('connected to cluster')
-client = HazelcastClient()
+client = HazelcastClient(cluster_members=[c.kv.get('hz_address')[1]['Value'].decode('utf-8')])
 
 
 @app.route("/", methods=["GET", "POST"])
 def handle_messages():
-    dist_map = client.get_map('distributed-map').blocking()
+    dist_map = client.get_map(c.kv.get('hz_map')[1]['Value'].decode('utf-8')).blocking()
 
     if request.method == "POST":
         uuid = request.form["uuid"]

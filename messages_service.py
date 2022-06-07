@@ -3,6 +3,11 @@ import logging
 from hazelcast import HazelcastClient, errors
 import sys
 from parse_ports import parse_port, Services
+import consul
+
+
+# setup consul
+c = consul.Consul()
 
 # setup logging
 logging.basicConfig(
@@ -16,11 +21,11 @@ app = Flask(__name__)
 
 # setup hazelcast
 try:
-    client = HazelcastClient(cluster_connect_timeout=5)
+    client = HazelcastClient(cluster_connect_timeout=int(c.kv.get('connect_timeout')[1]['Value'].decode('utf-8')))
 except errors.IllegalStateError:
     logger.error('could not connect to Hazelcast cluster. Are you sure the logging service was launched first?')
     sys.exit(-1)
-bounded_queue = client.get_queue("bounded-queue").blocking()
+bounded_queue = client.get_queue(c.kv.get('hz_queue')[1]['Value'].decode('utf-8')).blocking()
 
 # setup local storage
 storage = []
